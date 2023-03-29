@@ -1,12 +1,14 @@
 package io.apimap.api.service;
 
-import io.apimap.api.configuration.ApimapConfiguration;
 import io.apimap.api.repository.IRESTConverter;
 import io.apimap.api.repository.SearchRepository;
-import io.apimap.api.repository.repository.IApiRepository;
+import io.apimap.api.repository.generic.ClassificationCollection;
+import io.apimap.api.repository.interfaces.IApi;
+import io.apimap.api.repository.interfaces.IApiClassification;
+import io.apimap.api.repository.interfaces.IApiVersion;
+import io.apimap.api.repository.interfaces.IMetadata;
 import io.apimap.api.repository.repository.IClassificationRepository;
-import io.apimap.api.repository.repository.IMetadataRepository;
-import io.apimap.api.repository.repository.ITaxonomyRepository;
+import io.apimap.api.rest.ClassificationTreeRootRestEntity;
 import io.apimap.api.rest.jsonapi.JsonApiRestResponseWrapper;
 import io.apimap.api.service.context.ClassificationContext;
 import io.apimap.api.utils.ClassificationTreeBuilder;
@@ -21,6 +23,7 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
+import reactor.util.function.Tuple3;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -35,18 +38,6 @@ class ClassificationResourceServiceTest {
 
     @Mock
     private IClassificationRepository classificationRepository;
-
-    @Mock
-    private IApiRepository apiRepository;
-
-    @Mock
-    private IMetadataRepository metadataRepository;
-
-    @Mock
-    private ITaxonomyRepository taxonomyRepository;
-
-    @Mock
-    private ApimapConfiguration apimapConfiguration;
 
     @Mock
     private SearchRepository searchRepository;
@@ -69,9 +60,9 @@ class ClassificationResourceServiceTest {
                 .build();
 
         ClassificationContext context = RequestUtil.classificationContextFromRequest(request);
-        List<Object> searchResults = new ArrayList<>();
-        List<Object> treeResults = new ArrayList<>();
-        JsonApiRestResponseWrapper<?> responseWrapper = new JsonApiRestResponseWrapper<>();
+        List<Tuple3<IApi, IMetadata, IApiVersion>> searchResults = new ArrayList<>();
+        List<ClassificationCollection> treeResults = new ArrayList<>();
+        JsonApiRestResponseWrapper<ClassificationTreeRootRestEntity> responseWrapper = new JsonApiRestResponseWrapper<>();
 
         when(searchRepository.find(context.getFilters(), context.getQuery()))
                 .thenReturn(Flux.fromIterable(searchResults));
@@ -94,13 +85,14 @@ class ClassificationResourceServiceTest {
                 .build();
 
         ClassificationContext context = RequestUtil.classificationContextFromRequest(request);
-        List<Object> apiData = new ArrayList<>();
-        List<Object> treeResults = new ArrayList<>();
-        JsonApiRestResponseWrapper<?> responseWrapper = new JsonApiRestResponseWrapper<>();
+        List<IApiClassification> apiData = new ArrayList<>();
+        List<Tuple3<IApi, IMetadata, IApiVersion>> apis = new ArrayList<>();
+        List<ClassificationCollection> treeResults = new ArrayList<>();
+        JsonApiRestResponseWrapper<ClassificationTreeRootRestEntity> responseWrapper = new JsonApiRestResponseWrapper<>();
 
         when(classificationRepository.allByURN(context.getClassificationURN()))
                 .thenReturn(Flux.fromIterable(apiData));
-        when(classificationTreeBuilder.build(context, apiData))
+        when(classificationTreeBuilder.build(context, apis))
                 .thenReturn(Mono.just(treeResults));
         when(entityMapper.encodeClassifications(request.uri(), treeResults))
                 .thenReturn(Mono.just(responseWrapper));
