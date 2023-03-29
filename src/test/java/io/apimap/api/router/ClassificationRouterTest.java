@@ -8,11 +8,10 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.server.RouterFunction;
-import reactor.core.publisher.Mono;
+import org.springframework.web.reactive.function.server.ServerResponse;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import static org.springframework.web.reactive.function.server.RequestPredicates.accept;
 
 class ClassificationRouterTest {
 
@@ -34,22 +33,22 @@ class ClassificationRouterTest {
 
     @Test
     void testAllClassifications() {
-        when(classificationResourceService.allClassifications(any())).thenReturn(Mono.empty());
+        when(classificationResourceService.allClassifications(any())).thenReturn(ServerResponse.ok().build());
 
         webTestClient.get().uri("/classification")
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
-                .expectStatus().isNoContent();
+                .expectStatus().isOk();
 
     }
 
     @Test
     void testGetClassification() {
-        when(classificationResourceService.getClassification(any())).thenReturn(Mono.empty());
+        when(classificationResourceService.getClassification(any())).thenReturn(ServerResponse.ok().build());
 
         webTestClient.get().uri("/classification/urn:apimap:89")
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
-                .expectStatus().isNoContent();
+                .expectStatus().isOk();
     }
 }
